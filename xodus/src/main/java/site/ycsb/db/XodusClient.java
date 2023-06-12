@@ -1,4 +1,86 @@
 package site.ycsb.db;
 
-public class XodusClient {
+import jetbrains.exodus.ByteIterable;
+import jetbrains.exodus.bindings.StringBinding;
+import jetbrains.exodus.env.*;
+import site.ycsb.*;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.Vector;
+
+public class XodusClient extends DB {
+
+  Environment env = null;
+  private String STORE_NAME = "MyStore";
+
+  public void init() throws DBException {
+    env = Environments.newInstance("/home/me/.myAppData");
+  }
+
+  @Override
+  public void cleanup() throws DBException {
+
+  }
+
+
+  // TODO: not sure ab this: key = The record key of the record to insert.
+  @Override
+  public Status insert(String table, String key, Map<String, ByteIterator> values) {
+
+    env.executeInTransaction(txn -> {
+      final Store store = env.openStore(STORE_NAME, StoreConfig.WITHOUT_DUPLICATES, txn);
+
+      for (Map.Entry<String, ByteIterator> value: values.entrySet()){
+        store.put(txn, StringBinding.stringToEntry(value.getKey()),
+            StringBinding.stringToEntry(byteIteratorToString(value.getValue())));
+      }
+    });
+    return Status.OK;
+  }
+
+  private String byteIteratorToString(ByteIterator byteIter) {
+    return new String(byteIter.toArray());
+  }
+
+  @Override
+  public Status delete(String table, String key) {
+    env.executeInTransaction(txn -> {
+      final Store store = env.openStore(STORE_NAME, StoreConfig.WITHOUT_DUPLICATES, txn);
+        store.delete(txn, StringBinding.stringToEntry(key));
+    });
+    return Status.OK;
+
+  }
+
+  // TODO: not sure ab this: key = The record key of the record to insert.
+  @Override
+  public Status read(String table, String key, Set<String> fields, Map<String, ByteIterator> result) {
+    env.executeInTransaction(txn -> {
+      final Store store = env.openStore(STORE_NAME, StoreConfig.WITHOUT_DUPLICATES, txn);
+      final ByteIterable value = store.get(txn, StringBinding.stringToEntry(key));
+    });
+    env.close();
+    return Status.OK;
+
+  }
+
+  @Override
+  public Status update(String table, String key, Map<String, ByteIterator> values) {
+    // todo not yet implemented
+    return Status.OK;
+
+  }
+
+  @Override
+  public Status scan(String table, String startkey, int recordcount, Set<String> fields,
+                     Vector<HashMap<String, ByteIterator>> result) {
+    //  we are not interested in the range query benchmarking for now
+    // todo not yet implemented
+    return Status.OK;
+
+  }
+
+
 }
