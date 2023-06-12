@@ -150,6 +150,8 @@ LICENSE file.
     <tablestore.version>4.8.0</tablestore.version>
     <voltdb.version>10.1.1</voltdb.version>
     <zookeeper.version>3.5.8</zookeeper.version>
+    <xodus.version>2.0.1</xodus.version>
+
   </properties>
 
   <modules>
@@ -203,6 +205,7 @@ LICENSE file.
     <module>tablestore</module>
     <module>voltdb</module>
     <module>zookeeper</module>
+    <module>xodus</module>
   </modules>
 
   <build>
