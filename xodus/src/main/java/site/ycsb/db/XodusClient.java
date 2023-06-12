@@ -5,7 +5,6 @@ import jetbrains.exodus.bindings.StringBinding;
 import jetbrains.exodus.env.*;
 import site.ycsb.*;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -16,25 +15,20 @@ public class XodusClient extends DB {
   private Environment env;
   private Store store;
 
-  private static final String DB_NAME = "ycsb";
   private static final String DB_PATH = "/home/me/.myAppData";
   private static final String STORE_NAME = "store";
 
   @Override
-  public void init() throws DBException {
-    if (DB_PATH == null) {
-      throw new DBException("Database path property 'xodus.dbpath' is missing.");
-    }
-
+  public void init() {
     env = Environments.newInstance(DB_PATH);
     store = env.computeInTransaction(txn -> env.openStore(STORE_NAME, StoreConfig.WITHOUT_DUPLICATES, txn));
   }
 
 
   @Override
-  public void cleanup() throws DBException {
+  public void cleanup() {
     // todo: complete delete?
-    store.close();
+//    store.close();
     env.close();
   }
 
@@ -44,8 +38,6 @@ public class XodusClient extends DB {
   public Status insert(String table, String key, Map<String, ByteIterator> values) {
 
     env.executeInTransaction(txn -> {
-      final Store store = env.openStore(STORE_NAME, StoreConfig.WITHOUT_DUPLICATES, txn);
-
       for (Map.Entry<String, ByteIterator> value : values.entrySet()) {
         store.put(txn, StringBinding.stringToEntry(value.getKey()),
             StringBinding.stringToEntry(byteIteratorToString(value.getValue())));
@@ -61,24 +53,21 @@ public class XodusClient extends DB {
   // todo fix returns
   @Override
   public Status delete(String table, String key) {
-    env.executeInTransaction(txn -> {
-      final Store store = env.openStore(STORE_NAME, StoreConfig.WITHOUT_DUPLICATES, txn);
-      store.delete(txn, StringBinding.stringToEntry(key));
-    });
+    env.executeInTransaction(txn -> store.delete(txn, StringBinding.stringToEntry(key)));
     return Status.OK;
   }
 
   // TODO: not sure ab this: key = The record key of the record to insert.
   @Override
   public Status read(String table, String key, Set<String> fields, Map<String, ByteIterator> result) {
-    ByteIterable value = null;
     env.executeInTransaction(txn -> {
       // todo
-      final Store store = env.openStore(STORE_NAME, StoreConfig.WITHOUT_DUPLICATES, txn);
-//      value = store.get(txn, StringBinding.stringToEntry(key));
+      ByteIterable value = store.get(txn, StringBinding.stringToEntry(key));
+      assert value != null;
     });
     env.close();
-    return value != null ? Status.OK : Status.ERROR;
+
+    return Status.OK;
 
   }
 
