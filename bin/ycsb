@@ -111,9 +111,6 @@ DATABASES = {
     "xodus"        : "site.ycsb.db.XodusClient"
 
 }
-// todo add xodus db here to the list
-// todo create package-info in java module
-// todo - env is our  interface lvl for interaction with xodus
 
 OPTIONS = {
     "-P file"        : "Specify workload file",
