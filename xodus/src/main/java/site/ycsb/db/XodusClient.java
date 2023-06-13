@@ -10,6 +10,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 
+/**
+ * Client class for the Xodus DB.
+ **/
 public class XodusClient extends DB {
 
   private Environment env;
@@ -24,25 +27,22 @@ public class XodusClient extends DB {
     store = env.computeInTransaction(txn -> env.openStore(STORE_NAME, StoreConfig.WITHOUT_DUPLICATES, txn));
   }
 
-
   @Override
   public void cleanup() {
     // todo: complete delete?
-//    store.close();
+    // store.close();
     env.close();
   }
-
 
   // TODO: not sure ab this: key = The record key of the record to insert.
   @Override
   public Status insert(String table, String key, Map<String, ByteIterator> values) {
-
     env.executeInTransaction(txn -> {
-      for (Map.Entry<String, ByteIterator> value : values.entrySet()) {
-        store.put(txn, StringBinding.stringToEntry(value.getKey()),
-            StringBinding.stringToEntry(byteIteratorToString(value.getValue())));
-      }
-    });
+        for (Map.Entry<String, ByteIterator> value : values.entrySet()) {
+          store.put(txn, StringBinding.stringToEntry(value.getKey()),
+              StringBinding.stringToEntry(byteIteratorToString(value.getValue())));
+        }
+      });
     return Status.OK;
   }
 
@@ -62,13 +62,11 @@ public class XodusClient extends DB {
   public Status read(String table, String key, Set<String> fields, Map<String, ByteIterator> result) {
     env.executeInTransaction(txn -> {
       // todo
-      ByteIterable value = store.get(txn, StringBinding.stringToEntry(key));
-      assert value != null;
-    });
+        ByteIterable value = store.get(txn, StringBinding.stringToEntry(key));
+        assert value != null;
+      });
     env.close();
-
     return Status.OK;
-
   }
 
   @Override
@@ -83,8 +81,5 @@ public class XodusClient extends DB {
     //  we are not interested in the range query benchmarking for now
     // todo not yet implemented
     return Status.OK;
-
   }
-
-
 }
