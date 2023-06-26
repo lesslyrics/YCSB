@@ -18,7 +18,7 @@ public class XodusClient extends DB {
   private Environment env;
   private Store store;
 
-  private static final String DB_PATH = "/home/me/.myAppData";
+  private static final String DB_PATH = "/home/alinaboshchenko/.myAppData";
   private static final String STORE_NAME = "store";
 
   @Override

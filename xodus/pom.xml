@@ -58,8 +58,10 @@ LICENSE file.
     </dependency>
 
     <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
+      <groupId>io.github.microutils</groupId>
+      <artifactId>kotlin-logging</artifactId>
+      <version>1.7.9</version>
+      <scope>compile</scope>
     </dependency>
 
   </dependencies>
