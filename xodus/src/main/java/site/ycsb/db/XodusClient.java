@@ -37,6 +37,10 @@ public class XodusClient extends DB {
   }
 
   // TODO: not sure ab this: key = The record key of the record to insert.
+
+  // todo on multiple threads - on the benchmark size
+  //todo run also benchmark with --verify parameter for the data consistency
+
   @Override
   public Status insert(String table, String key, Map<String, ByteIterator> values) {
     Transaction writeTransaction = mvccComponent.startWriteTransaction();
