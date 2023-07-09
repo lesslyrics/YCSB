@@ -9,40 +9,72 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Client class for the Xodus DB.
  **/
 public class XodusClient extends DB {
 
-  private Environment env;
-  private Store store;
-
-  private static final String DB_PATH = "/home/alinaboshchenko/.myAppData";
+  private static final Lock INIT_LOCK = new ReentrantLock();
+  private static final ThreadLocal<Environment> ENV_THREAD_LOCAL = new ThreadLocal<>();
+  private static final ThreadLocal<Store> STORE_THREAD_LOCAL = new ThreadLocal<>();
   private static final String STORE_NAME = "store";
+
+  //  private static final String DB_PATH = "/home/alinaboshchenko/.myAppData";
+  private static final String DB_PATH = "/home/alinaboshchenko/WorkJB/benchmarking-experimental/YCSB/data";
 
   @Override
   public void init() {
-    env = Environments.newInstance(DB_PATH);
-    store = env.computeInTransaction(txn -> env.openStore(STORE_NAME, StoreConfig.WITHOUT_DUPLICATES, txn));
+    Environment env = ENV_THREAD_LOCAL.get();
+    Store store = STORE_THREAD_LOCAL.get();
+    if (env == null || store == null) {
+      INIT_LOCK.lock();
+      try {
+        if (env == null || store == null) {
+          env = Environments.newInstance(DB_PATH);
+          Environment finalEnv = env;
+          store = env.computeInTransaction(txn -> finalEnv.openStore(STORE_NAME, StoreConfig.WITHOUT_DUPLICATES, txn));
+          ENV_THREAD_LOCAL.set(env);
+          STORE_THREAD_LOCAL.set(store);
+        }
+      } finally {
+        INIT_LOCK.unlock();
+      }
+    }
   }
 
   @Override
   public void cleanup() {
-    // todo: complete delete?
-    // store.close();
-    env.close();
+    Environment env = ENV_THREAD_LOCAL.get();
+    Store store = STORE_THREAD_LOCAL.get();
+    if (env != null && store != null) {
+      store.close();
+      env.close();
+      ENV_THREAD_LOCAL.remove();
+      STORE_THREAD_LOCAL.remove();
+    }
   }
 
   // TODO: not sure ab this: key = The record key of the record to insert.
   @Override
   public Status insert(String table, String key, Map<String, ByteIterator> values) {
-    env.executeInTransaction(txn -> {
-        for (Map.Entry<String, ByteIterator> value : values.entrySet()) {
-          store.put(txn, StringBinding.stringToEntry(value.getKey()),
+    Environment env = ENV_THREAD_LOCAL.get();
+    Store store = STORE_THREAD_LOCAL.get();
+    for (Map.Entry<String, ByteIterator> value : values.entrySet()) {
+      env.executeInTransaction(txn -> {
+          store.put(txn, StringBinding.stringToEntry(key),
               StringBinding.stringToEntry(byteIteratorToString(value.getValue())));
-        }
-      });
+        });
+    }
+
+//    env.executeInTransaction(txn -> {
+//        for (Map.Entry<String, ByteIterator> value : values.entrySet()) {
+//          store.put(txn, StringBinding.stringToEntry(value.getKey()),
+//              StringBinding.stringToEntry(byteIteratorToString(value.getValue())));
+//        }
+//      });
     return Status.OK;
   }
 
@@ -53,6 +85,8 @@ public class XodusClient extends DB {
   // todo fix returns
   @Override
   public Status delete(String table, String key) {
+    Environment env = ENV_THREAD_LOCAL.get();
+    Store store = STORE_THREAD_LOCAL.get();
     env.executeInTransaction(txn -> store.delete(txn, StringBinding.stringToEntry(key)));
     return Status.OK;
   }
@@ -60,13 +94,21 @@ public class XodusClient extends DB {
   // TODO: not sure ab this: key = The record key of the record to insert.
   @Override
   public Status read(String table, String key, Set<String> fields, Map<String, ByteIterator> result) {
-    env.executeInTransaction(txn -> {
-      // todo
-        ByteIterable value = store.get(txn, StringBinding.stringToEntry(key));
-        assert value != null;
+//    env.executeInTransaction(txn -> {
+//      // todo
+//        ByteIterable value = store.get(txn, StringBinding.stringToEntry(key));
+//        assert value != null;
+//      });
+////    env.close();
+//    return Status.OK;
+    Environment env = ENV_THREAD_LOCAL.get();
+    Store store = STORE_THREAD_LOCAL.get();
+    env.executeInReadonlyTransaction(txn -> {
+        final ByteIterable valueEntry = store.get(txn, StringBinding.stringToEntry(key));
+        assert valueEntry != null;
       });
-    env.close();
     return Status.OK;
+
   }
 
   @Override
