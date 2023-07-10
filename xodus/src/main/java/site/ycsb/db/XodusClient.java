@@ -29,6 +29,8 @@ public class XodusClient extends DB {
 //    store = env.computeInTransaction(txn -> env.openStore(STORE_NAME, StoreConfig.WITHOUT_DUPLICATES, txn));
   }
 
+  // todo smth is wrong with data load
+
   @Override
   public void cleanup() {
     // todo: complete delete?
@@ -47,9 +49,7 @@ public class XodusClient extends DB {
     }
     try {
       mvccComponent.commitTransaction(writeTransaction);
-    } catch (ExecutionException e){
-      System.out.println(e);
-    } catch (InterruptedException e){
+    } catch (ExecutionException | InterruptedException e){
       System.out.println(e);
     }
     return Status.OK;
