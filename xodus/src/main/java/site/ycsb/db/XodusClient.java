@@ -1,6 +1,7 @@
 package site.ycsb.db;
 
 import jetbrains.exodus.ByteIterable;
+import jetbrains.exodus.ExodusException;
 import jetbrains.exodus.bindings.StringBinding;
 import jetbrains.exodus.env.*;
 import site.ycsb.*;
@@ -33,11 +34,46 @@ public class XodusClient extends DB {
       INIT_LOCK.lock();
       try {
         if (env == null || store == null) {
-          env = Environments.newInstance(DB_PATH);
+          env = Environments.newInstance(DB_PATH); // error here
           Environment finalEnv = env;
           store = env.computeInTransaction(txn -> finalEnv.openStore(STORE_NAME, StoreConfig.WITHOUT_DUPLICATES, txn));
           ENV_THREAD_LOCAL.set(env);
           STORE_THREAD_LOCAL.set(store);
+        }
+      } catch (ExodusException e){
+        try {
+          if (env == null || store == null) {
+            env = Environments.newInstance(DB_PATH + "1"); // error here
+            Environment finalEnv = env;
+            store = env.computeInTransaction(txn ->
+                finalEnv.openStore(STORE_NAME, StoreConfig.WITHOUT_DUPLICATES, txn));
+            ENV_THREAD_LOCAL.set(env);
+            STORE_THREAD_LOCAL.set(store);
+          }
+        } catch (ExodusException e2){
+          try {
+            if (env == null || store == null) {
+              env = Environments.newInstance(DB_PATH + "2"); // error here
+              Environment finalEnv = env;
+              store = env.computeInTransaction(txn ->
+                  finalEnv.openStore(STORE_NAME, StoreConfig.WITHOUT_DUPLICATES, txn));
+              ENV_THREAD_LOCAL.set(env);
+              STORE_THREAD_LOCAL.set(store);
+            }
+          } catch (ExodusException e3){
+            try {
+              if (env == null || store == null) {
+                env = Environments.newInstance(DB_PATH + "3"); // error here
+                Environment finalEnv = env;
+                store = env.computeInTransaction(txn ->
+                    finalEnv.openStore(STORE_NAME, StoreConfig.WITHOUT_DUPLICATES, txn));
+                ENV_THREAD_LOCAL.set(env);
+                STORE_THREAD_LOCAL.set(store);
+              }
+            } catch (ExodusException e4){
+              System.out.println("Error");
+            }
+          }
         }
       } finally {
         INIT_LOCK.unlock();
