@@ -4,11 +4,12 @@ import jetbrains.exodus.ByteIterable;
 import jetbrains.exodus.bindings.StringBinding;
 import jetbrains.exodus.newLogConcept.MVCC.MVCCDataStructure;
 import jetbrains.exodus.newLogConcept.transaction.Transaction;
+import org.json.JSONObject;
 import site.ycsb.*;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.Vector;
+
+import java.io.FileNotFoundException;
+import java.io.PrintStream;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -19,12 +20,17 @@ public class XodusClient extends DB {
 //  private Environment env;
 //  private Store store;
 
-  private static final String DB_PATH = "/home/alinaboshchenko/.myAppData";
-  private static final String STORE_NAME = "store";
   private MVCCDataStructure mvccComponent = new MVCCDataStructure();
+  private PrintStream ps;
+
 
   @Override
   public void init() {
+    try {
+      ps = new PrintStream("stacktrace.log");
+    } catch (FileNotFoundException ignored) {
+      System.out.println("File not found");
+    }
 //    env = Environments.newInstance(DB_PATH);
 //    store = env.computeInTransaction(txn -> env.openStore(STORE_NAME, StoreConfig.WITHOUT_DUPLICATES, txn));
   }
@@ -34,23 +40,21 @@ public class XodusClient extends DB {
   @Override
   public void cleanup() {
     // todo: complete delete?
-    // store.close();
-//    env.close();
   }
+
+
 
   // TODO: not sure ab this: key = The record key of the record to insert.
   @Override
   public Status insert(String table, String key, Map<String, ByteIterator> values) {
     Transaction writeTransaction = mvccComponent.startWriteTransaction();
-
-    for (Map.Entry<String, ByteIterator> value : values.entrySet()) {
-      mvccComponent.put(writeTransaction, StringBinding.stringToEntry(value.getKey()),
-          StringBinding.stringToEntry(byteIteratorToString(value.getValue())));
-    }
+    mvccComponent.put(writeTransaction, StringBinding.stringToEntry(key),
+        StringBinding.stringToEntry(convertToJsonString(values)));
     try {
       mvccComponent.commitTransaction(writeTransaction);
     } catch (ExecutionException | InterruptedException e){
-      System.out.println(e);
+      System.out.println(Arrays.toString(e.getStackTrace()));
+      e.printStackTrace(ps);
     }
     return Status.OK;
   }
@@ -78,9 +82,9 @@ public class XodusClient extends DB {
     return Status.OK;
   }
 
+
   @Override
   public Status update(String table, String key, Map<String, ByteIterator> values) {
-    // todo ?
     return insert(table, key, values);
   }
 
@@ -88,7 +92,18 @@ public class XodusClient extends DB {
   public Status scan(String table, String startkey, int recordcount, Set<String> fields,
                      Vector<HashMap<String, ByteIterator>> result) {
     //  we are not interested in the range query benchmarking for now
-    // todo not yet implemented
     return Status.OK;
   }
+
+  public String convertToJsonString(Map<String, ByteIterator> keyValueMap) {
+    JSONObject json = new JSONObject();
+
+    for (Map.Entry<String, ByteIterator> entry : keyValueMap.entrySet()) {
+      String key = entry.getKey();
+      String value = byteIteratorToString(entry.getValue());
+      json.put(key, value);
+    }
+    return json.toString();
+  }
+
 }

@@ -53,8 +53,16 @@ LICENSE file.
       <artifactId>xodus-utils</artifactId>
       <version>0.1.4</version>
       <scope>system</scope>
-      <systemPath>{path}/xodus-utils-0.1.4.jar</systemPath>
+      <systemPath>{path}/xodus-utils-0.1.5.jar</systemPath>
     </dependency>
+
+    <!-- https://mvnrepository.com/artifact/org.json/json -->
+    <dependency>
+      <groupId>org.json</groupId>
+      <artifactId>json</artifactId>
+      <version>20230618</version>
+    </dependency>
+
 
     <!-- https://mvnrepository.com/artifact/org.lz4/lz4-java -->
     <dependency>
