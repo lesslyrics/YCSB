@@ -17,6 +17,9 @@ dependencies {
 
 }
 
+jar {
+    destinationDir = file("${rootDir}/xodus/target")
+}
 
 
 description = 'Xodus Binding'

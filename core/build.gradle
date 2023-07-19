@@ -16,6 +16,10 @@ dependencies {
 
 description = 'Core YCSB'
 
+jar {
+    destinationDir = file("${rootDir}/core/target")
+}
+
 tasks.named('test') {
     useTestNG()
 }

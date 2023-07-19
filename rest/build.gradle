@@ -25,4 +25,9 @@ dependencies {
     providedCompile project(':core')
 }
 
+
+jar {
+    destinationDir = file("${rootDir}/rest/target")
+}
+
 description = 'Rest Client Binding'
