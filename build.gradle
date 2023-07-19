@@ -1,0 +1,7 @@
+task printClasspath {
+    doLast {
+        configurations.each { File file ->
+            println file
+        }
+    }
+}

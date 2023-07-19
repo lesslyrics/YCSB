@@ -150,7 +150,7 @@ def get_ycsb_home():
 
 def is_distribution():
     # If there's a top level pom, we're a source checkout. otherwise a dist artifact
-    return "pom.xml" not in os.listdir(get_ycsb_home())
+    return False
 
 # Run the maven dependency plugin to get the local jar paths.
 # presumes maven can run, so should only be run on source checkouts
@@ -161,15 +161,16 @@ def get_classpath_from_maven(module):
     try:
         debug("Running 'mvn -pl site.ycsb:" + module + " -am package -DskipTests "
               "dependency:build-classpath -DincludeScope=compile -Dmdep.outputFilterFile=true'")
-        mvn_output = check_output(["mvn", "-pl", "site.ycsb:" + module,
-                                   "-am", "package", "-DskipTests",
-                                   "dependency:build-classpath",
-                                   "-DincludeScope=compile",
-                                   "-Dmdep.outputFilterFile=true"])
+        # mvn_output = check_output(["mvn", "-pl", "site.ycsb:" + module,
+        #                            "-am", "package", "-DskipTests",
+        #                            "dependency:build-classpath",
+        #                            "-DincludeScope=compile",
+        #                            "-Dmdep.outputFilterFile=true"])
         # the above outputs a "classpath=/path/tojar:/path/to/other/jar" for each module
         # the last module will be the datastore binding
-        line = [x for x in mvn_output.splitlines() if x.startswith("classpath=")][-1:]
-        return line[0][len("classpath="):]
+        # line = [x for x in mvn_output.splitlines() if x.startswith("classpath=")][-1:]
+        line = "site.ycsb:xodus-binding"
+        return line
     except subprocess.CalledProcessError, err:
         error("Attempting to generate a classpath from Maven failed "
               "with return code '" + str(err.returncode) + "'. The output from "
