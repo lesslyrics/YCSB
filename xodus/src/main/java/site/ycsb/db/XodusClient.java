@@ -104,8 +104,6 @@ public class XodusClient extends DB {
               StringBinding.stringToEntry(byteIteratorToString(value.getValue())));
         });
     }
-    System.err.println("HEREEEEE");
-
 //    env.executeInTransaction(txn -> {
 //        for (Map.Entry<String, ByteIterator> value : values.entrySet()) {
 //          store.put(txn, StringBinding.stringToEntry(value.getKey()),

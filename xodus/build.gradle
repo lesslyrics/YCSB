@@ -22,4 +22,13 @@ jar {
 }
 
 
+
+task printRuntimeClasspath {
+    def runtimeClasspath = sourceSets.main.runtimeClasspath
+    inputs.files( runtimeClasspath )
+    doLast {
+        println runtimeClasspath.join( File.pathSeparator )
+    }
+}
+
 description = 'Xodus Binding'
